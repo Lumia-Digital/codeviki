@@ -35,16 +35,19 @@ export default function Navbar() {
         ? "bg-background/80 backdrop-blur-md border-b border-border py-3" 
         : "bg-transparent py-5"
     )}>
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform">
-            <Sparkles size={20} />
-          </div>
-          <span className="text-xl font-black tracking-tighter">CodeViki</span>
-        </Link>
+      <div className="w-full max-w-[1440px] mx-auto px-6 md:px-10 flex items-center">
+        {/* Left Section: Logo */}
+        <div className="flex-1 flex justify-start">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform">
+              <Sparkles size={20} />
+            </div>
+            <span className="text-xl font-black tracking-tighter">CodeViki</span>
+          </Link>
+        </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/50 backdrop-blur-sm">
+        {/* Center Section: Desktop Navigation */}
+        <div className="hidden md:flex flex-none items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/50 backdrop-blur-sm">
           {navLinks.map((link) => (
             <Link 
               key={link.name} 
@@ -61,8 +64,9 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-3 mr-2">
+        {/* Right Section: Actions */}
+        <div className="flex-1 flex justify-end items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <ModeToggle />
             {session ? (
               <div className="flex items-center gap-4">
