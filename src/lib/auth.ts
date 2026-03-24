@@ -12,6 +12,28 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
     }),
+    {
+      id: 'google',
+      name: 'Google',
+      type: 'oauth',
+      wellKnown: 'https://accounts.google.com/.well-known/openid-configuration',
+      authorization: { params: { scope: 'openid email profile' } },
+      idToken: true,
+      checks: ['pkce', 'state'],
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          subscriptionTier: 'free',
+          usageProjects: 0,
+          usageApiCalls: 0,
+        } as any;
+      },
+      clientId: process.env.GOOGLE_ID!,
+      clientSecret: process.env.GOOGLE_SECRET!,
+    },
     CredentialsProvider({
       name: 'Credentials',
       credentials: {

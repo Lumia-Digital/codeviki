@@ -24,7 +24,37 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to send OTP');
+        setIsLoading(false);
+        return;
+      }
+
+      setIsOtpSent(true);
+      setIsLoading(false);
+    } catch (err) {
+      setError('An unexpected error occurred.');
+      setIsLoading(false);
+    }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +65,7 @@ export default function SignupPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, otp }),
       });
 
       const data = await res.json();
@@ -133,15 +163,30 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <Button 
-              variant="outline" 
-              className="w-full h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] gap-3 border-border/60 hover:bg-primary/5 hover:border-primary/30 transition-all"
-              onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
-            >
-              <Github size={18} /> Sync with GitHub
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                className="h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] gap-3 border-border/60 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+              >
+                <Github size={18} /> GitHub
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] gap-3 border-border/60 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Google
+              </Button>
+            </div>
 
-            <form className="space-y-6" onSubmit={handleSignup}>
+            <form className="space-y-6" onSubmit={isOtpSent ? handleSignup : handleSendOtp}>
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-[11px] font-bold flex items-center gap-2">
                   <Sparkles size={14} className="shrink-0" />
@@ -149,67 +194,115 @@ export default function SignupPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Alias Name</Label>
-                  <div className="relative group">
-                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input 
-                      placeholder="e.g. Satoshi"
-                      className="pl-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      required
-                    />
+              {!isOtpSent ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Alias Name</Label>
+                      <div className="relative group">
+                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input 
+                          placeholder="e.g. Satoshi"
+                          className="pl-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Email Address</Label>
+                      <div className="relative group">
+                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input 
+                          type="email" 
+                          placeholder="dev@domain.com"
+                          className="pl-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Email Address</Label>
-                  <div className="relative group">
-                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input 
-                      type="email" 
-                      placeholder="dev@domain.com"
-                      className="pl-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                    />
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Access Token (Password)</Label>
+                    <div className="relative group">
+                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input 
+                        type={showPassword ? 'text' : 'password'} 
+                        placeholder="Min 8 characters"
+                        className="pl-12 pr-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPassword(!showPassword)} 
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Access Token (Password)</Label>
-                <div className="relative group">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                  <Input 
-                    type={showPassword ? 'text' : 'password'} 
-                    placeholder="Min 8 characters"
-                    className="pl-12 pr-12 h-12 rounded-xl bg-background/50 border-border/60 font-bold focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPassword(!showPassword)} 
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full h-14 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 mt-4 group" 
+                    disabled={isLoading}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full h-14 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 mt-4 group" 
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Initialize Identity <Zap size={16} className="ml-2 group-hover:scale-110 transition-transform" /></>}
-              </Button>
+                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Send Verification Code <Zap size={16} className="ml-2 group-hover:scale-110 transition-transform" /></>}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                      <p className="text-[11px] font-bold text-center text-primary uppercase tracking-wider">
+                        A 6-digit verification code has been sent to 
+                        <br />
+                        <span className="text-foreground">{email}</span>
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase tracking-widest font-black ml-1 opacity-70">Verification Code (OTP)</Label>
+                      <div className="relative group">
+                        <Zap size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input 
+                          placeholder="000000"
+                          maxLength={6}
+                          className="pl-12 h-14 rounded-xl bg-background/50 border-border/60 font-black text-xl tracking-[0.5em] text-center focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
+                          value={otp}
+                          onChange={e => setOtp(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      type="submit" 
+                      className="w-full h-14 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 group" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Complete Enrollment <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" /></>}
+                    </Button>
+                    <button 
+                      type="button"
+                      onClick={() => setIsOtpSent(false)}
+                      className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-2"
+                    >
+                      Edit details
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
           </CardContent>
 

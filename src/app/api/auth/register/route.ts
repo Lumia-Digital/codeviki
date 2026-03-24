@@ -4,11 +4,35 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, otp } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    if (!email || !password || !otp) {
+      return NextResponse.json({ error: 'Email, password, and OTP are required' }, { status: 400 });
     }
+
+    // Verify OTP first
+    const verificationToken = await prisma.verificationToken.findUnique({
+      where: {
+        identifier_token: {
+          identifier: email.toLowerCase(),
+          token: otp,
+        },
+      },
+    });
+
+    if (!verificationToken || verificationToken.expires < new Date()) {
+      return NextResponse.json({ error: 'Invalid or expired OTP' }, { status: 401 });
+    }
+
+    // Delete the token immediately after use
+    await prisma.verificationToken.delete({
+      where: {
+        identifier_token: {
+          identifier: email.toLowerCase(),
+          token: otp,
+        },
+      },
+    });
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
