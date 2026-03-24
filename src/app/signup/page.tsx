@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Github, Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle, Loader2, Sparkles, Zap } from 'lucide-react';
+import { Github, Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle, Loader2, Sparkles, Zap, ArrowLeft } from 'lucide-react';
 import { PRICING_TIERS } from '@/lib/mock-data';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,14 @@ export default function SignupPage() {
         transition={{ duration: 0.5 }}
         className="max-w-[640px] w-full"
       >
+        <div className="mb-6 flex justify-start">
+          <Link 
+            href="https://lumiadigital.site" 
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border/60"
+          >
+            <ArrowLeft size={14} /> Back to Website
+          </Link>
+        </div>
         <Card className="border-border/60 shadow-2xl shadow-primary/5 bg-card/50 backdrop-blur-xl overflow-hidden">
           <CardHeader className="text-center pt-10 pb-6">
             <div className="flex justify-center mb-6">

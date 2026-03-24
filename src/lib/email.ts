@@ -10,7 +10,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   const resend = new Resend(resendApiKey);
   try {
     await resend.emails.send({
-      from: 'CodeViki <auth@lumiadigital.site>',
+      from: 'CodeViki <onboarding@resend.dev>',
       to: email,
       subject: 'Verify your CodeViki account',
       html: `
