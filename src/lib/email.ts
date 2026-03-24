@@ -1,8 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function sendVerificationEmail(email: string, token: string) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.error('RESEND_API_KEY is not set in environment variables');
+    return { success: false, error: 'Email service configuration missing' };
+  }
+
+  const resend = new Resend(resendApiKey);
   try {
     await resend.emails.send({
       from: 'CodeViki <auth@lumiadigital.site>',
