@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { Github, Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle, Loader2, Sparkles, Zap, ArrowLeft } from 'lucide-react';
 import { PRICING_TIERS } from '@/lib/mock-data';
 import { motion } from 'framer-motion';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
@@ -27,6 +28,12 @@ export default function SignupPage() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
+  }, [status, router]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();

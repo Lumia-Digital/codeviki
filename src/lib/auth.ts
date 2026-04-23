@@ -11,6 +11,14 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email?.toLowerCase(),
+          image: profile.avatar_url,
+        } as any;
+      }
     }),
     {
       id: 'google',
@@ -24,7 +32,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: profile.sub,
           name: profile.name,
-          email: profile.email,
+          email: profile.email?.toLowerCase(),
           image: profile.picture,
           subscriptionTier: 'free',
           usageProjects: 0,
