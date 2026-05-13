@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'GitHub API route is active',
+    environment: {
+      hasToken: !!process.env.GITHUB_TOKEN,
+      nodeEnv: process.env.NODE_ENV,
+    }
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { repoUrl } = await request.json();
@@ -18,6 +30,9 @@ export async function POST(request: NextRequest) {
     const repoName = repo.replace('.git', '');
 
     const githubToken = process.env.GITHUB_TOKEN;
+    if (!githubToken) {
+      console.error('CRITICAL: GITHUB_TOKEN is missing from environment variables');
+    }
     const commonHeaders: Record<string, string> = {
       'Accept': 'application/vnd.github.v3+json',
     };
@@ -37,7 +52,15 @@ export async function POST(request: NextRequest) {
           suggestion: 'Create a token at https://github.com/settings/tokens'
         }, { status: 429 });
       }
-      return NextResponse.json({ error: 'Repository not found or is private' }, { status: 404 });
+      return NextResponse.json({ 
+        error: 'GitHub Repository not found or is private',
+        debug: {
+          owner,
+          repoName,
+          status: repoRes.status,
+          hasToken: !!githubToken
+        }
+      }, { status: 404 });
     }
 
     const repoData = await repoRes.json();

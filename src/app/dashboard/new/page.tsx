@@ -129,8 +129,18 @@ export default function NewProjectPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ repoUrl }),
         });
+        
+        if (!ghRes.ok) {
+          const ghData = await ghRes.json().catch(() => ({ error: 'Unknown server error' }));
+          console.error('GitHub fetch failed:', {
+            status: ghRes.status,
+            statusText: ghRes.statusText,
+            data: ghData
+          });
+          throw new Error(ghData.error || `Failed to fetch GitHub repo (${ghRes.status})`);
+        }
+        
         const ghData = await ghRes.json();
-        if (!ghRes.ok) throw new Error(ghData.error || 'Failed to fetch GitHub repo');
         files = ghData.files;
         setProgress(30);
         setStatusMsg(`Fetched ${files.length} files from ${ghData.repo.fullName}`);
